@@ -196,6 +196,7 @@ function SidenavFocusDirective() {
  *
  * @param {expression=} md-is-open A model bound to whether the sidenav is opened.
  * @param {string=} md-component-id componentId to use with $mdSidenav service.
+ * @param {boolean=} md-disable-drag Disables the abbility to drag the sidenav
  * @param {expression=} md-is-locked-open When this expression evalutes to true,
  * the sidenav 'locks open': it falls into the content's flow instead
  * of appearing over it. This overrides the `is-open` attribute.
@@ -208,7 +209,7 @@ function SidenavFocusDirective() {
  *   - `<md-sidenav md-is-locked-open="$mdMedia('min-width: 1000px')"></md-sidenav>`
  *   - `<md-sidenav md-is-locked-open="$mdMedia('sm')"></md-sidenav>` (locks open on small screens)
  */
-function SidenavDirective($mdMedia, $mdUtil, $mdConstant, $mdTheming, $animate, $compile, $parse, $log, $q, $document) {
+function SidenavDirective($mdMedia, $mdUtil, $mdConstant, $mdTheming, $animate, $mdGesture, $parse, $log, $q, $document, $timeout) {
   return {
     restrict: 'E',
     scope: {
@@ -256,6 +257,8 @@ function SidenavDirective($mdMedia, $mdUtil, $mdConstant, $mdTheming, $animate, 
     scope.$watch(isLocked, updateIsLocked);
     scope.$watch('isOpen', updateIsOpen);
 
+    // Enable dragging
+    if (!angular.isDefined(attr.mdDisableDrag) || !attr.mdDisableDrag) enableDragging();
 
     // Publish special accessor for the Controller instance
     sidenavCtrl.$toggleOpen = toggleOpen;
@@ -320,6 +323,95 @@ function SidenavDirective($mdMedia, $mdUtil, $mdConstant, $mdTheming, $animate, 
         parent.css('overflow', lastParentOverFlow);
         lastParentOverFlow = undefined;
 
+      }
+    }
+
+    function enableDragging() {
+      $mdGesture.register(element, 'drag', { horizontal: true });
+
+      element
+        .on('$md.dragstart', onDragStart)
+        .on('$md.drag', onDrag)
+        .on('$md.dragend', onDragEnd);
+
+      var style = getComputedStyle(element[0]);
+      var sidenavWidth = parseInt(style.width);
+      var isRightSidenav = element.hasClass('md-sidenav-right');
+      var accelerationBound = 6;
+
+      var dragCancelled = false;
+      var dragPercentage;
+      var lastOpenState;
+      var lastDistance = 0;
+      var isQuickDrag = false;
+
+      function onDragStart() {
+        if (element.hasClass('md-locked-open')) {
+          dragCancelled = true;
+        } else {
+          lastOpenState = scope.isOpen;
+          element.css($mdConstant.CSS.TRANSITION_DURATION, '0ms');
+        }
+      }
+
+      function onDrag(ev) {
+        if (dragCancelled) return;
+
+        if (!isQuickDrag) {
+          var distance = lastDistance - ev.pointer.distanceX;
+          isQuickDrag = isRightSidenav ? distance <= -accelerationBound : distance >= accelerationBound;
+        } else if (isRightSidenav && lastDistance > ev.pointer.distanceX ||
+            !isRightSidenav && lastDistance < ev.pointer.distanceX) {
+          isQuickDrag = false;
+        }
+
+        dragPercentage = Math.round((ev.pointer.distanceX / sidenavWidth) * 100);
+        if (!isRightSidenav) dragPercentage = 0 - dragPercentage;
+
+        if (dragPercentage > 100) dragPercentage = 100;
+        else if (dragPercentage < 0) dragPercentage = 0;
+
+        element.css($mdConstant.CSS.TRANSFORM, 'translate3d(-' + (isRightSidenav ? 100 - dragPercentage : dragPercentage) + '%,0,0)');
+        lastDistance = ev.pointer.distanceX;
+      }
+
+      function onDragEnd() {
+        if (dragCancelled) {
+          dragCancelled = false;
+          return;
+        }
+
+        var remainingPercentage = 100 - dragPercentage;
+        var animationTime = 4 * remainingPercentage;
+        var isOpen = dragPercentage > 50 || isQuickDrag;
+        if (isRightSidenav) {
+          isOpen = !isOpen;
+        }
+
+        element.css($mdConstant.CSS.TRANSITION_DURATION, animationTime + "ms");
+
+        element.css($mdConstant.CSS.TRANSFORM, 'translate3d(' + (isOpen ? -100 : 0) +  '%,0,0)');
+
+        // Reset drag
+        lastDistance = 0;
+        isQuickDrag = false;
+        $timeout(onAnimationDone, animationTime, true, (isRightSidenav ? isOpen : !isOpen));
+      }
+
+      function onAnimationDone(isOpen) {
+        scope.isOpen = isOpen;
+        element.css($mdConstant.CSS.TRANSFORM, '');
+        element.css($mdConstant.CSS.TRANSITION_DURATION, '');
+
+        if (isOpen) {
+          if (!lastOpenState) {
+            $animate.enter(backdrop, element.parent());
+          }
+          element.removeClass('md-closed');
+        } else {
+          $animate.leave(backdrop);
+          element.addClass('md-closed');
+        }
       }
     }
 
