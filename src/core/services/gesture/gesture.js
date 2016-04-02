@@ -299,7 +299,7 @@ function MdGesture($$MdGestureHandler, $$rAF, $timeout) {
      */
     .handler('swipe', {
       options: {
-        minVelocity: 0.65,
+        minVelocity: 0.3,
         minDistance: 10
       },
       onEnd: function (ev, pointer) {
