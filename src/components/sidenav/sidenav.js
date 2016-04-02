@@ -401,7 +401,10 @@ function SidenavDirective($mdMedia, $mdUtil, $mdConstant, $mdTheming, $animate, 
       function onAnimationDone(isOpen) {
         scope.isOpen = isOpen;
         element.css($mdConstant.CSS.TRANSFORM, '');
-        element.css($mdConstant.CSS.TRANSITION_DURATION, '');
+        element.css($mdConstant.CSS.TRANSITION_DURATION, '0s');
+        $timeout(function(){
+            element.css($mdConstant.CSS.TRANSITION_DURATION, '');
+        }, 0, false);
 
         if (isOpen) {
           if (!lastOpenState) {
