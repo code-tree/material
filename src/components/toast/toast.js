@@ -87,7 +87,7 @@ function MdToastDirective($mdToast) {
 /**
  * @ngdoc method
  * @name $mdToast#showSimple
- * 
+ *
  * @param {string} message The message to display inside the toast
  * @description
  * Convenience method which builds and shows a simple toast.
@@ -367,8 +367,8 @@ function MdToastProvider($$interimElementProvider) {
 
         // If the swipe direction is down/up but the toast came from top/bottom don't fade away
         // Unless the screen is small, then the toast always on bottom
-        if ((direction === 'down' && options.position.indexOf('top') != -1 && !isSmScreen) ||
-            (direction === 'up' && (options.position.indexOf('bottom') != -1 || isSmScreen))) {
+        if ((direction === 'down' && options.position.indexOf('top') != -1) ||
+            (direction === 'up' && (options.position.indexOf('bottom') != -1))) {
           return;
         }
 
@@ -391,7 +391,7 @@ function MdToastProvider($$interimElementProvider) {
       }
 
       element.on(SWIPE_EVENTS, options.onSwipe);
-      element.addClass(isSmScreen ? '_md-bottom' : options.position.split(' ').map(function(pos) {
+      element.addClass(options.position.split(' ').map(function(pos) {
         return '_md-' + pos;
       }).join(' '));
 

@@ -139,8 +139,13 @@ md-toast {
     max-width: 100%;
     min-width: 0;
     border-radius: 0;
-    bottom: 0;
     padding: 0;
+    &._md-bottom {
+      bottom: 0;
+    }
+    &._md-left {
+      left: 0;
+    }
 
     &.ng-leave.ng-leave-active {
       &._md-swipeup {
