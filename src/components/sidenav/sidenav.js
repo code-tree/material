@@ -313,6 +313,10 @@ function SidenavDirective($mdMedia, $mdUtil, $mdConstant, $mdTheming, $animate, 
                 $animate[isOpen ? 'removeClass' : 'addClass'](element, '_md-closed')
               ])
               .then(function() {
+                // Now animation is complete, ensure drag-related styles are removed
+                // NOTE: Removing earlier will trigger double animation
+                element.css($mdConstant.CSS.TRANSFORM, '');
+                element.css($mdConstant.CSS.TRANSITION_DURATION, '');
                 // Perform focus when animations are ALL done...
                 if (scope.isOpen) {
                   focusEl && focusEl.focus();
@@ -412,8 +416,6 @@ function SidenavDirective($mdMedia, $mdUtil, $mdConstant, $mdTheming, $animate, 
 
       function onAnimationDone(isOpen) {
         scope.isOpen = isOpen;
-        element.css($mdConstant.CSS.TRANSFORM, '');
-        element.css($mdConstant.CSS.TRANSITION_DURATION, '');
 
         if (isOpen) {
           if (!lastOpenState) {
