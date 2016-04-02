@@ -350,7 +350,7 @@ function SidenavDirective($mdMedia, $mdUtil, $mdConstant, $mdTheming, $animate, 
       var isQuickDrag = false;
 
       function onDragStart() {
-        if (element.hasClass('md-locked-open')) {
+        if (scope.isLockedOpen) {
           dragCancelled = true;
         } else {
           lastOpenState = scope.isOpen;
