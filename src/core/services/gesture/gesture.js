@@ -305,15 +305,18 @@ function MdGesture($$MdGestureHandler, $$rAF, $timeout) {
       onEnd: function (ev, pointer) {
         var eventType;
 
-        if (Math.abs(pointer.velocityX) > this.state.options.minVelocity &&
-          Math.abs(pointer.distanceX) > this.state.options.minDistance) {
-          eventType = pointer.directionX == 'left' ? '$md.swipeleft' : '$md.swiperight';
-          this.dispatchEvent(ev, eventType);
-        }
-        else if (Math.abs(pointer.velocityY) > this.state.options.minVelocity &&
-          Math.abs(pointer.distanceY) > this.state.options.minDistance) {
-          eventType = pointer.directionY == 'up' ? '$md.swipeup' : '$md.swipedown';
-          this.dispatchEvent(ev, eventType);
+        if (Math.abs(pointer.distanceX) > Math.abs(pointer.distanceY)) {
+            if (Math.abs(pointer.velocityX) > this.state.options.minVelocity &&
+              Math.abs(pointer.distanceX) > this.state.options.minDistance) {
+              eventType = pointer.directionX == 'left' ? '$md.swipeleft' : '$md.swiperight';
+              this.dispatchEvent(ev, eventType);
+            }
+        } else {
+            if (Math.abs(pointer.velocityY) > this.state.options.minVelocity &&
+              Math.abs(pointer.distanceY) > this.state.options.minDistance) {
+              eventType = pointer.directionY == 'up' ? '$md.swipeup' : '$md.swipedown';
+              this.dispatchEvent(ev, eventType);
+            }
         }
       }
     });
